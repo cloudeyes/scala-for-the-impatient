@@ -18,7 +18,7 @@ import javax.inject.Named
 @RunWith(classOf[JUnitRunner])
 class TestChapter15 extends FunSuite {
 
-  def t2_어노테이트_가능한_항목들 {
+  def t02_어노테이트_가능한_항목들 {
     @Entity class Credentials
     @Test def testSomeFeature() { assert(false) }
     @BeanProperty var username = "john"
@@ -42,7 +42,7 @@ class TestChapter15 extends FunSuite {
     //val a : String @cps[Unit] = "string1"
   }
   
-  def t3_어노테이션_인자 {
+  def t03_어노테이션_인자 {
     @Entity class Credentials
     // 이름 있는 인자.
     @Test(timeout = 100, expected = classOf[IOException]) def test1 {} 
@@ -51,7 +51,7 @@ class TestChapter15 extends FunSuite {
     @Named("creds") var credentials: Credentials = null 
   }
   
-  def t4_어노테이션_구현 {
+  def t04_어노테이션_구현 {
     // 어노테이션은 Annotation 트레이트를 확장해야 한다.
     // 어노테이션 클래스는 StaticAnnotation 이나 ClassfileAnotation 트레이트를
     // 선택적으로 확장할 수 있다.jko
@@ -66,7 +66,34 @@ class TestChapter15 extends FunSuite {
     val cred = new Credentials(null)
     cred.username = null
   }
+  
+  def t06_최적화_어노테이션 {
+    
+    // 제너릭 함수는 타입에 대한 박싱/언박싱이 매번 일어나 비효율적이다.
+    def allDifferentGeneric[T](x:T, y:T, z:T) = x != y && x != z && y != z
+    
+    // 제너릭 함수에서 기본 타입 값들을 싸고 푸는대신 기본 타입(Int, String 등)
+    // 에 대해 미리 오버로드된 함수를 만들어 놓는다.
+    def allDifferent[@specialized T](x:T, y:T, z:T) = x != y && x != z && y != z
+    
+    // 특수화를 타입의 부분집합으로 제한할 수도 있다.
+    def allDifferentLimited[@specialized(Long, Double) T](x:T, y:T, z:T) = 
+      x != y && x != z && y != z
+  }
+  
+  def t07_오류와_경고_어노테이션 {
+    @deprecated(message = "Use factorial(n: BigInt) instead")
+    def factorial(n: Int): Int = ???
+    
+    // sz는 size로 변경된 후 ㅍ
+    def draw(@deprecatedName('sz) size:Int, style:Int = 0) = 
+      println(s"draw with style $style")
+      
+    // sz
+    draw(sz = 12)
 
-  test("15.2 어노테이션 가능한 항목들") { t2_어노테이트_가능한_항목들 }
-  test("15.4 어노테이션 구현") { t4_어노테이션_구현 }
+  }
+
+  test("15.2 어노테이션 가능한 항목들") { t02_어노테이트_가능한_항목들 }
+  test("15.4 어노테이션 구현") { t04_어노테이션_구현 }
 }

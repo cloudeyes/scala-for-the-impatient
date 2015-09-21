@@ -7,6 +7,7 @@ lazy val chapter13 = project.settings(Config.commonScalaSettings)
 lazy val chapter14 = project.settings(Config.commonScalaSettings)
 lazy val chapter15 = project.settings(Config.commonScalaSettings)
     .settings(libraryDependencies ++= Seq(javaJpa))
+lazy val chapter16 = project.settings(Config.commonScalaSettings)
 
 /* The Root Project */
 lazy val root = (project in file(".")).
@@ -15,7 +16,7 @@ lazy val root = (project in file(".")).
     settings(Config.commonSettings).
     settings(Config.unidocSettings).
     settings(giter8.ScaffoldPlugin.scaffoldSettings:_*).
-    aggregate(chapter13, chapter14, chapter15)
+    aggregate(chapter13, chapter14, chapter15, chapter16)
 
 fork in run  := true
 fork in test := true
