@@ -5,17 +5,18 @@ import org.scalatest.junit._
 import org.scalatest.Assertions._
 import org.junit.runner.RunWith
 import org.junit.Assert._
-import scala.math.pow
 
+/** 13장 콜렉션의 예제 테스트 */
 @RunWith(classOf[JUnitRunner])
-class TestClass extends FunSuite {
+class TestChapter13 extends FunSuite {
+  import scala.math.pow
 
   /** 13.14 레이지 뷰
    *   
    *  레이지뷰는 스트림과 비슷하지만 어떤 값도 캐시하지 않든다. 
    *  매 인덱스에 접근할 때마다. 다시 계산된다.
    */
-  def test13_14 {
+  def t14_레이지뷰 {
     import math._
 
     val powers = (0 until 1000).view.map(pow(10, _))
@@ -38,8 +39,8 @@ class TestClass extends FunSuite {
   /** 자바 콜렉션과의 상호 호환
    *  
    */
-  def test13_15 {
-    import scala.collection.JavaConversions._
+  def t15_자바_콜렉션_호환 {
+    import collection.JavaConversions._
     /* 암시적 변환을 촉발하기 위해 타겟 값에 명시적인 타입을 준다. */
     val props: scala.collection.mutable.Map[String, String] = 
       System.getProperties()
@@ -51,8 +52,29 @@ class TestClass extends FunSuite {
     assertEquals("world", props("hello"))
     
   }
+  
+  /** 13.16 쓰레드 안전 콜렉션 / 13.17 병렬 콜렉션
+   *  
+   */
+  def t16_17_쓰레드_안전_및_병렬_콜렉션 {
+    import collection.mutable.ArrayBuffer
+    import collection.JavaConversions.asScalaIterator
+    import java.util.concurrent.ConcurrentLinkedQueue 
+    val result = new ConcurrentLinkedQueue[Int]()
+    // 병력 컬렉션 연산은 순서가 보장되지 않는다.
+    val coll = (0 until 100)
+    for (i <- coll.par) { result.add(i) }
+    assertEquals(coll.size, result.size)
+    assertNotEquals(coll, result) // 결과는 순서가 다르다.
+    // 순서대로 정렬해보면 원하는 결과다.
+    assertEquals(coll, result.iterator().toSeq.sorted)
 
-  test("13.14 레이지 뷰") { test13_14 }
-  test("13.15 자바 콜렉션과의 상호 호환") { test13_15 }
+    // 하지만 yield를 쓰면 결과를 순서대로 결합하여 리턴한다.
+    assertEquals(coll.toSeq, for (i <- coll.par) yield i)
+  }
+
+  test("13.14 레이지 뷰")             { t14_레이지뷰 }
+  test("13.15 자바 콜렉션과의 상호 호환") { t15_자바_콜렉션_호환 }
+  test("13.16 쓰레드 안전 콜렉션 / 13.17 병렬 콜렉션") { t16_17_쓰레드_안전_및_병렬_콜렉션 }
 
 }
