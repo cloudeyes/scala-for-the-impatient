@@ -10,6 +10,10 @@ import scala.xml.Atom
 import scala.xml.Text
 import scala.xml.PCData
 import scala.xml.Group
+import scala.xml.Attribute
+import scala.xml.Null
+import scala.xml.transform.RewriteRule
+import scala.xml.transform.RuleTransformer
 
 
 @RunWith(classOf[JUnitRunner])
@@ -140,9 +144,44 @@ class TestChapter16 extends FunSuite {
     
   }
   
-  test("16.1~3 XML 리터럴, 노드, 어트리뷰트") { t01_XML리터럴_노드_어트리뷰트 }
-  test("16.4 내재 표현식") { t04_내재_표현식 }
-  test("16.6 특별한 노드 타입") { t06_특별한_노드_타입 }
- 
+  def t09_엘리멘트_어트리뷰트_수정 {
+    val items = Seq("John", "Sarang")
+    val list = <ul><li>{items(0)}</li><li>{Text(items(1))}</li></ul>
+    // 레이블을 ul에서 ol로 바꾸기
+    val list2 = list.copy(label = "ol")
+    // 자식을 추가
+    list.copy(child = list.child ++ <li>Another item</li>)
+    // 어트리뷰트 수정
+    val image = <img src="hamster.jpg"/>
+    val image2 = image % Attribute(/*네임스페이스*/null, "alt", "An image of a hamster", 
+        /*다음 메타데이터*/ Null)
+    // 두 개 이상의 어트리뷰트를 더하기
+    val image3 = image % Attribute(null, "alt", "An image of a frog",
+        Attribute(null, "src", "frog.jpg", Null))
+    assertEquals(<img src="frog.jpg" alt="An image of a frog"/>, image3)
+    
+  }
   
+  /** 하나 이상의 RewriteRule 인스턴스를 노드와 그 자손들에 적용하는 RuleTransformer 클래스를 사용한다.
+   * - 특정 조건을 만족하는 모든 자식을 다시 쓰는 방법.
+   */
+  def t10_XML변환 {
+    val rule1 = new RewriteRule {
+      override def transform(n: Node) = n match {
+        case e @ <ul>{_*}</ul> => e.asInstanceOf[Elem].copy(label = "ol")
+        case _ => n
+      }
+    }
+    
+    val root = <test><ul><li>hello</li><li>world</li></ul>instructions:<div><ul><li>first</li><li>second</li></ul></div></test>
+    val transformed = new RuleTransformer(rule1).transform(root)
+    assertEquals(<test><ol><li>hello</li><li>world</li></ol>instructions:<div><ol><li>first</li><li>second</li></ol></div></test> , 
+        transformed)
+  }
+   
+  test("16.01~3 XML 리터럴, 노드, 어트리뷰트") { t01_XML리터럴_노드_어트리뷰트 }
+  test("16.04 내재 표현식") { t04_내재_표현식 }
+  test("16.06 특별한 노드 타입") { t06_특별한_노드_타입 }
+  test("16.09 엘리먼트/어트리뷰트 수정") { t09_엘리멘트_어트리뷰트_수정 }
+  test("16.10 XML 변환") { t10_XML변환 }
 }
